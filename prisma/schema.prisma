@@ -2,19 +2,24 @@ generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  image         String?
-  items         Item[]
-  audits        Audit[]
-  createdAt     DateTime  @default(now())
+  id        String   @id @default(cuid())
+  name      String?
+  email     String?  @unique
+  image     String?
+  
+  items     Item[]
+  audits    Audit[]
+  
+  createdAt DateTime @default(now())
 }
+
 model Item {
   id          String   @id @default(cuid())
   title       String
@@ -32,12 +37,14 @@ model Item {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
 enum Status {
   NEW
   IN_REVIEW
   REJECTED
   APPROVED
 }
+
 model Audit {
   id        String   @id @default(cuid())
   
