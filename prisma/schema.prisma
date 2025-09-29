@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  image         String?
+  items         Item[]
+  audits        Audit[]
+  createdAt     DateTime  @default(now())
+}
+model Item {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  amount      Float?
+  tags        String[]
+  riskScore   Int      @default(0)
+  status      Status   @default(NEW)
+  
+  createdBy   String
+  user        User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  
+  audits      Audit[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+enum Status {
+  NEW
+  IN_REVIEW
+  REJECTED
+  APPROVED
+}
+model Audit {
+  id        String   @id @default(cuid())
+  
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  action    String
+  oldValue  String?
+  newValue  String?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([itemId])
+  @@index([userId])
+}
