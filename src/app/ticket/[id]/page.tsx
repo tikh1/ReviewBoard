@@ -4,8 +4,9 @@ import { useParams, useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Calendar, AlertCircle, FileText, Clock, DollarSign, Save } from "lucide-react"
+import { ArrowLeft, Calendar, Tag, FileText, Clock, DollarSign, Save, Link as LinkIcon, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Header } from "@/components/header"
 import { useUser } from "@/lib/user-context"
@@ -43,6 +44,10 @@ export default function TicketDetailPage() {
 
   const [editedRiskScore, setEditedRiskScore] = useState<number>(ticketData?.riskScore ?? 0)
   const [editedStatus, setEditedStatus] = useState(ticketData?.status || "open")
+  const [rejectionWebhookUrl, setRejectionWebhookUrl] = useState<string | null>(ticketData?.rejectionWebhookUrl ?? null)
+  const [isWebhookDialogOpen, setIsWebhookDialogOpen] = useState(false)
+  const [webhookInput, setWebhookInput] = useState<string>(ticketData?.rejectionWebhookUrl ?? "")
+  const [savingWebhook, setSavingWebhook] = useState(false)
   
 
   // Sync editable fields with backend when ticket loads/changes
@@ -50,6 +55,8 @@ export default function TicketDetailPage() {
     if (ticketData) {
       setEditedRiskScore(ticketData.riskScore ?? 0)
       setEditedStatus(ticketData.status || "New")
+      setRejectionWebhookUrl(ticketData.rejectionWebhookUrl ?? null)
+      setWebhookInput(ticketData.rejectionWebhookUrl ?? "")
     }
   }, [ticketData])
 
@@ -58,14 +65,17 @@ export default function TicketDetailPage() {
   const originalStatus = ticketData?.status || "New"
 
   // Check if there are any changes
-  const hasChanges = editedStatus !== originalStatus
+  const originalWebhook = ticketData?.rejectionWebhookUrl ?? null
+  const hasChanges = editedStatus !== originalStatus || (rejectionWebhookUrl ?? null) !== originalWebhook
 
   
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = async (overrideWebhook?: string | null) => {
     const payload: any = {}
     // risk is derived; do not send riskScore updates
     if (editedStatus !== originalStatus) payload.status = editedStatus
+    const nextWebhook = (typeof overrideWebhook !== "undefined") ? overrideWebhook : (rejectionWebhookUrl ?? null)
+    if ((nextWebhook ?? null) !== originalWebhook) payload.rejectionWebhookUrl = nextWebhook ?? null
     
 
     if (Object.keys(payload).length === 0) {
@@ -97,6 +107,51 @@ export default function TicketDetailPage() {
           window.dispatchEvent(event)
         } catch {}
       }
+    }
+  }
+
+  const openWebhookDialog = () => {
+    setWebhookInput(rejectionWebhookUrl ?? "")
+    setIsWebhookDialogOpen(true)
+  }
+
+  const closeWebhookDialog = () => {
+    if (savingWebhook) return
+    setIsWebhookDialogOpen(false)
+  }
+
+  const handleConfirmWebhook = async () => {
+    if (savingWebhook) return
+    setSavingWebhook(true)
+    try {
+      const trimmed = webhookInput.trim()
+      if (trimmed.length === 0) {
+        setRejectionWebhookUrl(null)
+      } else {
+        try {
+          // validate basic URL
+          // eslint-disable-next-line no-new
+          new URL(trimmed)
+        } catch {
+          if (typeof window !== "undefined") {
+            try {
+              const event = new CustomEvent("app:toast", { detail: { message: "Invalid URL", kind: "error" } })
+              window.dispatchEvent(event)
+            } catch {}
+          }
+          return
+        }
+        setRejectionWebhookUrl(trimmed)
+      }
+      if (typeof window !== "undefined") {
+        try {
+          const event = new CustomEvent("app:toast", { detail: { message: "Webhook URL set (not saved yet)", kind: "info" } })
+          window.dispatchEvent(event)
+        } catch {}
+      }
+      setIsWebhookDialogOpen(false)
+    } finally {
+      setSavingWebhook(false)
     }
   }
 
@@ -170,6 +225,20 @@ export default function TicketDetailPage() {
     return "bg-foreground text-background border-foreground/80"
   }
 
+  const isRiskTag = (tag: string) => {
+    const t = tag.trim().toLowerCase()
+    if (t === "risk" || t === "high" || t === "mid" || t === "low") return true
+    if (t === "high risk" || t === "mid risk" || t === "low risk") return true
+    if (t === "risk high" || t === "risk mid" || t === "risk low") return true
+    return /\brisk\b/.test(t)
+  }
+
+  const formatTag = (tag: string) => {
+    const t = String(tag || "")
+    if (t.length === 0) return t
+    return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -199,6 +268,11 @@ export default function TicketDetailPage() {
                 <Badge variant="outline" className={`${getStatusColor(ticket.status)} text-base px-4 py-1`}>
                   {getStatusText(ticket.status)}
                 </Badge>
+                {isAdmin && (
+                  <Button variant="outline" size="sm" onClick={openWebhookDialog} className="ml-2">
+                    <LinkIcon className="mr-2 h-4 w-4" /> Set Webhook
+                  </Button>
+                )}
               </div>
             </div>
           </Card>
@@ -239,17 +313,19 @@ export default function TicketDetailPage() {
             <Card className="p-6 border-border">
               <div className="flex items-center gap-4">
                 <div className="rounded-full bg-primary/10 p-3">
-                  <AlertCircle className="h-6 w-6 text-primary" />
+                  <Tag className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground mb-1">Tags</p>
-                  {ticket.tags && ticket.tags.length > 0 ? (
+                  {ticket.tags && ticket.tags.filter((t: string) => !isRiskTag(t)).length > 0 ? (
                     <div className="flex flex-wrap gap-2 mt-1">
-                      {ticket.tags.map((tag: string) => (
-                        <Badge key={tag} variant="outline" className={`px-2 py-0.5 text-xs ${getTagStyle(tag)}`}>
-                          {tag}
-                        </Badge>
-                      ))}
+                      {ticket.tags
+                        .filter((tag: string) => !isRiskTag(tag))
+                        .map((tag: string) => (
+                          <Badge key={tag} variant="outline" className={`px-2 py-0.5 text-xs ${getTagStyle(tag)}`}>
+                            {formatTag(tag)}
+                          </Badge>
+                        ))}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">No tags</p>
@@ -303,7 +379,7 @@ export default function TicketDetailPage() {
               </Button>
               <Button
                 size="lg"
-                onClick={handleSaveChanges}
+                onClick={() => handleSaveChanges()}
                 disabled={!hasChanges}
                 className="px-7 py-3.5 min-w-[190px]"
               >
@@ -314,6 +390,42 @@ export default function TicketDetailPage() {
           )}
         </div>
       </div>
+
+      {isWebhookDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={closeWebhookDialog} />
+          <Card className="relative z-10 w-full max-w-lg p-6 border-border bg-background">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Set rejection webhook URL</h3>
+              <Button variant="ghost" size="icon" onClick={closeWebhookDialog}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground" htmlFor="webhook-url">Webhook URL</label>
+              <Input
+                id="webhook-url"
+                placeholder="https://example.com/webhooks/rejections"
+                value={webhookInput}
+                onChange={(e: any) => setWebhookInput(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Leave empty to disable the webhook.</p>
+              <p className="text-xs text-muted-foreground">A JSON POST will only be sent if the ticket is rejected.</p>
+              <p className="text-xs text-muted-foreground">
+                For testing, you can use an example service like
+                {' '}<a href="https://webhook.site/" target="_blank" rel="noreferrer" className="underline">Webhook.site</a>.
+                Open the site and copy your generated URL here.
+              </p>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" onClick={closeWebhookDialog} disabled={savingWebhook}>Cancel</Button>
+              <Button onClick={handleConfirmWebhook} disabled={savingWebhook}>
+                {savingWebhook ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

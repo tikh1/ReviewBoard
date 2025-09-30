@@ -50,6 +50,7 @@ export async function GET(
       createdAt: item.createdAt.toISOString().slice(0, 10),
       price: item.amount ?? 0,
       createdBy: item.user?.name ?? "-",
+      rejectionWebhookUrl: (item as any).rejectionWebhookUrl ?? null,
     }
 
     return NextResponse.json({ ticket })
@@ -74,6 +75,7 @@ export async function PATCH(
     const body = await req.json().catch(() => ({})) as {
       status?: "New" | "In-Review" | "Rejected" | "Approved" | "open" | "pending" | "closed"
       note?: string
+      rejectionWebhookUrl?: string | null
     }
 
     const item = await prisma.item.findUnique({ where: { id } })
@@ -145,7 +147,37 @@ export async function PATCH(
       )
     }
 
+    // If a webhook URL was provided, persist it
+    if (typeof body.rejectionWebhookUrl !== "undefined") {
+      const url = body.rejectionWebhookUrl && body.rejectionWebhookUrl.trim().length > 0 ? body.rejectionWebhookUrl.trim() : null
+      updates.push(
+        prisma.item.update({ where: { id }, data: { rejectionWebhookUrl: url } as any }).then((res) => (updatedItem = res))
+      )
+    }
+
     await Promise.all([...updates, ...audits])
+
+    // After update: if status is now REJECTED, send webhook
+    const statusNow = updatedItem.status
+    if (statusNow === "REJECTED") {
+      // Webhook JSON POST
+      const webhookUrl = (updatedItem as any).rejectionWebhookUrl || process.env.REJECTION_WEBHOOK_URL
+      if (webhookUrl) {
+        fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "ticket.rejected",
+            payload: {
+              id: updatedItem.id,
+              title: updatedItem.title,
+              createdBy: updatedItem.createdBy,
+              rejectedAt: new Date().toISOString(),
+            },
+          }),
+        }).catch((e: unknown) => console.error("Webhook error:", e))
+      }
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {

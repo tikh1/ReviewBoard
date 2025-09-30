@@ -101,6 +101,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Ensure the user exists to satisfy the foreign key on Item.createdBy
+    await prisma.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: {
+        id: userId,
+        name: (session as any)?.user?.name ?? null,
+        email: (session as any)?.user?.email ?? null,
+      },
+    })
+
     const body = await req.json()
     const { title, description, tag, price } = body as {
       title?: string

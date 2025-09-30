@@ -28,6 +28,9 @@ model Item {
   riskScore   Int      @default(0)
   status      Status   @default(NEW)
   
+  // Optional per-ticket webhook URL to call when status becomes REJECTED
+  rejectionWebhookUrl String?
+  
   createdBy   String
   user        User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   
