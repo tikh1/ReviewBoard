@@ -24,12 +24,14 @@ export async function GET(req: Request) {
     // Map status filter to DB enum(s)
     const statusWhere = (() => {
       switch (statusParam) {
-        case "open":
+        case "New":
           return { in: ["NEW"] as any }
-        case "pending":
+        case "In-Review":
           return { in: ["IN_REVIEW"] as any }
-        case "closed":
-          return { in: ["APPROVED", "REJECTED"] as any }
+        case "Rejected":
+          return { in: ["REJECTED"] as any }
+        case "Approved":
+          return { in: ["APPROVED"] as any }
         default:
           return undefined
       }
@@ -44,14 +46,15 @@ export async function GET(req: Request) {
     const mapStatus = (s: string) => {
       switch (s) {
         case "NEW":
-          return "open"
+          return "New"
         case "IN_REVIEW":
-          return "pending"
+          return "In-Review"
         case "REJECTED":
+          return "Rejected"
         case "APPROVED":
-          return "closed"
+          return "Approved"
         default:
-          return "open"
+          return "New"
       }
     }
 

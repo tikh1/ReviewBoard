@@ -20,14 +20,15 @@ export async function GET(
     const mapStatus = (s: string) => {
       switch (s) {
         case "NEW":
-          return "open"
+          return "New"
         case "IN_REVIEW":
-          return "pending"
+          return "In-Review"
         case "REJECTED":
+          return "Rejected"
         case "APPROVED":
-          return "closed"
+          return "Approved"
         default:
-          return "open"
+          return "New"
       }
     }
 
@@ -77,7 +78,7 @@ export async function PATCH(
 
     const { id } = await ctx.params
     const body = await req.json().catch(() => ({})) as {
-      status?: "open" | "pending" | "closed"
+      status?: "New" | "In-Review" | "Rejected" | "Approved" | "open" | "pending" | "closed"
       note?: string
     }
 
@@ -88,6 +89,16 @@ export async function PATCH(
 
     const toDbStatus = (s: string | undefined) => {
       switch (s) {
+        // New labels
+        case "New":
+          return "NEW"
+        case "In-Review":
+          return "IN_REVIEW"
+        case "Rejected":
+          return "REJECTED"
+        case "Approved":
+          return "APPROVED"
+        // Backward compatible legacy values
         case "open":
           return "NEW"
         case "pending":
@@ -122,7 +133,7 @@ export async function PATCH(
             userId,
             action: "STATUS_CHANGED",
             oldValue: String(item.status),
-            newValue: toDbStatus(body.status) as string,
+            newValue: (toDbStatus(body.status) as string) ?? String(item.status),
           },
         })
       )

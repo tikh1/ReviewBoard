@@ -61,12 +61,20 @@ const user = session.user
               <rect width="7" height="5" x="3" y="16" rx="1" />
             </svg>
           </div>
-          <Link href="/" className="text-lg font-semibold text-foreground transition-colors duration-300 hover:opacity-80">
+          <Link href="/dashboard" className="text-lg font-semibold text-foreground transition-colors duration-300 hover:opacity-80">
             Dashboard
           </Link>
           <div className="h-5 w-px bg-border ml-1 mr-1" />
           <Link href="/rules">
             <Button variant="ghost" className="h-8 px-3">Rules</Button>
+          </Link>
+          {isAdmin && (
+            <Link href="/audits">
+              <Button variant="ghost" className="h-8 px-3">Audits</Button>
+            </Link>
+          )}
+          <Link href="/about">
+            <Button variant="ghost" className="h-8 px-3">About</Button>
           </Link>
         </div>
 

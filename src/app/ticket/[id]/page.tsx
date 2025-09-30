@@ -5,9 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Calendar, AlertCircle, FileText, Clock, DollarSign, Plus, Save } from "lucide-react"
+import { ArrowLeft, Calendar, AlertCircle, FileText, Clock, DollarSign, Save } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Header } from "@/components/header"
 import { useUser } from "@/lib/user-context"
@@ -45,49 +43,30 @@ export default function TicketDetailPage() {
 
   const [editedRiskScore, setEditedRiskScore] = useState<number>(ticketData?.riskScore ?? 0)
   const [editedStatus, setEditedStatus] = useState(ticketData?.status || "open")
-  const [notes, setNotes] = useState<Array<{ id: string; text: string; date: string }>>([])
-  const [newNote, setNewNote] = useState("")
-  const [showNoteInput, setShowNoteInput] = useState(false)
+  
 
   // Sync editable fields with backend when ticket loads/changes
   useEffect(() => {
     if (ticketData) {
       setEditedRiskScore(ticketData.riskScore ?? 0)
-      setEditedStatus(ticketData.status || "open")
+      setEditedStatus(ticketData.status || "New")
     }
   }, [ticketData])
 
   // Track original values to detect changes
   const originalRiskScore = ticketData?.riskScore ?? 0
-  const originalStatus = ticketData?.status || "open"
+  const originalStatus = ticketData?.status || "New"
 
   // Check if there are any changes
-  const hasChanges = editedStatus !== originalStatus || newNote.trim() !== ""
+  const hasChanges = editedStatus !== originalStatus
 
-  const handleAddNote = () => {
-    if (newNote.trim()) {
-      const note = {
-        id: Date.now().toString(),
-        text: newNote,
-        date: new Date().toLocaleDateString("tr-TR", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      }
-      setNotes([...notes, note])
-      setNewNote("")
-      setShowNoteInput(false)
-    }
-  }
+  
 
   const handleSaveChanges = async () => {
     const payload: any = {}
     // risk is derived; do not send riskScore updates
     if (editedStatus !== originalStatus) payload.status = editedStatus
-    if (newNote.trim()) payload.note = newNote.trim()
+    
 
     if (Object.keys(payload).length === 0) {
       alert("No changes to save")
@@ -110,24 +89,7 @@ export default function TicketDetailPage() {
           window.dispatchEvent(event)
         } catch {}
       }
-      if (payload.note) {
-        setNotes([
-          ...notes,
-          {
-            id: Date.now().toString(),
-            text: payload.note,
-            date: new Date().toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          },
-        ])
-        setNewNote("")
-        setShowNoteInput(false)
-      }
+      
     } catch (err: any) {
       if (typeof window !== "undefined") {
         try {
@@ -172,25 +134,18 @@ export default function TicketDetailPage() {
 
   const getStatusColor = (status: typeof ticket.status) => {
     switch (status) {
-      case "open":
+      case "New":
         return "bg-chart-3/20 text-chart-3 border-chart-3/30"
-      case "closed":
+      case "Approved":
         return "bg-muted text-muted-foreground border-border"
-      case "pending":
+      case "In-Review":
         return "bg-chart-4/20 text-chart-4 border-chart-4/30"
+      case "Rejected":
+        return "bg-destructive/20 text-destructive border-destructive/30"
     }
   }
 
-  const getStatusText = (status: typeof ticket.status) => {
-    switch (status) {
-      case "open":
-        return "Open"
-      case "closed":
-        return "Closed"
-      case "pending":
-        return "Pending"
-    }
-  }
+  const getStatusText = (status: typeof ticket.status) => status
 
   const getRiskColor = (risk: "low" | "mid" | "high") => {
     switch (risk) {
@@ -316,9 +271,10 @@ export default function TicketDetailPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
+                        <SelectItem value="New">New</SelectItem>
+                        <SelectItem value="In-Review">In-Review</SelectItem>
+                        <SelectItem value="Rejected">Rejected</SelectItem>
+                        <SelectItem value="Approved">Approved</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
@@ -331,64 +287,19 @@ export default function TicketDetailPage() {
             </Card>
           </div>
 
-          {notes.length > 0 && (
-            <Card className="p-6 border-border">
-              <div className="flex items-center gap-2 mb-4">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-                <h2 className="text-lg font-semibold text-foreground">Notes</h2>
-              </div>
-              <div className="space-y-3">
-                {notes.map((note) => (
-                  <div key={note.id} className="border-l-2 border-primary pl-4 py-2">
-                    <p className="text-foreground leading-relaxed">{note.text}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{note.date}</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
+          
 
-          {showNoteInput && isAdmin && (
-            <Card className="p-6 border-border">
-              <div className="flex items-center gap-2 mb-4">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-                <h2 className="text-lg font-semibold text-foreground">New Note</h2>
-              </div>
-              <Textarea
-                placeholder="Write your note here..."
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                className="min-h-[100px]"
-              />
-              <div className="flex gap-2 mt-4">
-                <Button onClick={handleAddNote} size="sm">
-                  Add Note
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowNoteInput(false)
-                    setNewNote("")
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </Card>
-          )}
+          
 
           {isAdmin && (
             <div className="flex items-center justify-center gap-8 pt-4">
               <Button
                 variant="outline"
                 size="lg"
-                onClick={() => setShowNoteInput(!showNoteInput)}
-                disabled={showNoteInput}
+                onClick={() => router.push("/")}
                 className="px-7 py-3.5 min-w-[190px]"
               >
-                <Plus className="mr-2 h-5 w-5" />
-                Add Note
+                Cancel
               </Button>
               <Button
                 size="lg"

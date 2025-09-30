@@ -14,7 +14,7 @@ type TicketType = {
   id: string
   title: string
   description: string
-  status: "open" | "closed" | "pending"
+  status: "New" | "In-Review" | "Rejected" | "Approved"
   risk: "low" | "mid" | "high"
   assignedTo: string
   createdAt: string
@@ -70,29 +70,19 @@ export function DataTable() {
 
   const getStatusColor = (status: TicketType["status"]) => {
     switch (status) {
-      case "open":
+      case "New":
         return "bg-chart-3/20 text-chart-3 border-chart-3/30"
-      case "closed":
+      case "Approved":
         return "bg-muted text-muted-foreground border-border"
-      case "pending":
+      case "In-Review":
         return "bg-chart-4/20 text-chart-4 border-chart-4/30"
+      case "Rejected":
+        return "bg-destructive/20 text-destructive border-destructive/30"
       default:
         return "bg-muted text-muted-foreground border-border"
     }
   }
-
-  const getStatusText = (status: TicketType["status"]) => {
-    switch (status) {
-      case "open":
-        return "Open"
-      case "closed":
-        return "Closed"
-      case "pending":
-        return "Pending"
-      default:
-        return status
-    }
-  }
+  const getStatusText = (status: TicketType["status"]) => status
 
   const getRiskColor = (risk: TicketType["risk"]) => {
     switch (risk) {
@@ -154,9 +144,10 @@ export function DataTable() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
+                    <SelectItem value="New">New</SelectItem>
+                    <SelectItem value="In-Review">In-Review</SelectItem>
+                    <SelectItem value="Rejected">Rejected</SelectItem>
+                    <SelectItem value="Approved">Approved</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

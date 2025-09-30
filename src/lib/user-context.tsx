@@ -11,12 +11,14 @@ interface UserContextType {
   role: UserRole
   setRole: (role: UserRole) => void
   isAdmin: boolean
+  roleLoaded: boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [role, setRoleState] = useState<UserRole>("user")
+  const [roleLoaded, setRoleLoaded] = useState(false)
   const { data: session } = useSession()
 
   useEffect(() => {
@@ -24,6 +26,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (savedRole === "admin" || savedRole === "user") {
       setRoleState(savedRole)
     }
+    setRoleLoaded(true)
   }, [])
 
   const setRole = (newRole: UserRole) => {
@@ -31,7 +34,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("userRole", newRole)
   }
 
-  return <UserContext.Provider value={{ user: session?.user ?? null, role, setRole, isAdmin: role === "admin" }}>{children}</UserContext.Provider>
+  return <UserContext.Provider value={{ user: session?.user ?? null, role, setRole, isAdmin: role === "admin", roleLoaded }}>{children}</UserContext.Provider>
 }
 
 export function useUser() {
