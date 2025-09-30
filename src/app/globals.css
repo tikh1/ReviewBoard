@@ -1,7 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: oklch(1 0 0);
@@ -74,52 +73,13 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
-@theme inline {
-  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
-
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
 
   /* Added smooth color transitions for theme switching */
@@ -160,4 +120,41 @@
       opacity: 1;
     }
   }
+}
+
+/* Tailwind v3 compatibility utilities for design tokens */
+@layer utilities {
+  .bg-background { background-color: var(--background); }
+  .text-foreground { color: var(--foreground); }
+  .bg-card { background-color: var(--card); }
+  .text-card-foreground { color: var(--card-foreground); }
+  .bg-popover { background-color: var(--popover); }
+  .text-popover-foreground { color: var(--popover-foreground); }
+  .bg-primary { background-color: var(--primary); }
+  .text-primary { color: var(--primary); }
+  .text-primary-foreground { color: var(--primary-foreground); }
+  .bg-secondary { background-color: var(--secondary); }
+  .text-secondary-foreground { color: var(--secondary-foreground); }
+  .bg-muted { background-color: var(--muted); }
+  .text-muted-foreground { color: var(--muted-foreground); }
+  .bg-accent { background-color: var(--accent); }
+  .text-accent-foreground { color: var(--accent-foreground); }
+  .bg-destructive { background-color: var(--destructive); }
+  .text-destructive { color: var(--destructive); }
+  .border-border { border-color: var(--border); }
+  .ring { --tw-ring-color: var(--ring); }
+
+  /* Chart color utilities and common opacity variants used in the app */
+  .text-chart-2 { color: var(--chart-2); }
+  .text-chart-3 { color: var(--chart-3); }
+  .text-chart-4 { color: var(--chart-4); }
+
+  .bg-chart-2\/20 { background-color: color-mix(in oklab, var(--chart-2) 20%, transparent); }
+  .bg-chart-3\/20 { background-color: color-mix(in oklab, var(--chart-3) 20%, transparent); }
+  .bg-chart-4\/20 { background-color: color-mix(in oklab, var(--chart-4) 20%, transparent); }
+  .bg-destructive\/20 { background-color: color-mix(in oklab, var(--destructive) 20%, transparent); }
+
+  .border-chart-3\/30 { border-color: color-mix(in oklab, var(--chart-3) 30%, transparent); }
+  .border-chart-4\/30 { border-color: color-mix(in oklab, var(--chart-4) 30%, transparent); }
+  .border-destructive\/30 { border-color: color-mix(in oklab, var(--destructive) 30%, transparent); }
 }
