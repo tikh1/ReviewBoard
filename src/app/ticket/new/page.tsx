@@ -22,7 +22,7 @@ export default function NewTicketPage() {
   const [tag, setTag] = useState<string>("technical")
   const [price, setPrice] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!title.trim() || !description.trim()) {
@@ -30,19 +30,40 @@ export default function NewTicketPage() {
       return
     }
 
-    console.log("[v0] Creating new ticket:", {
-      title,
-      description,
-      tag,
-      price: price ? Number(price) : 0,
-      createdBy: user?.name,
-      assignedTo: user?.name,
-      status: "open",
-      createdAt: new Date().toISOString().split("T")[0],
-    })
-
-    alert("Ticket created successfully!")
-    router.push("/")
+    try {
+      const res = await fetch("/api/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description,
+          tag,
+          price: price ? Number(price) : undefined,
+        }),
+      })
+      if (!res.ok) {
+        const msg = await res.json().catch(() => ({}))
+        throw new Error(msg?.error || "Failed to create ticket")
+      }
+      const data = await res.json()
+      // toast on success
+      if (typeof window !== "undefined") {
+        const { useToast } = await import("@/components/ui/toast")
+        try {
+          // dynamic hook usage is not allowed outside components, so fallback to event
+          const event = new CustomEvent("app:toast", { detail: { message: "Ticket created successfully!", kind: "success" } })
+          window.dispatchEvent(event)
+        } catch {}
+      }
+      router.push(`/ticket/${data.id}`)
+    } catch (err: any) {
+      if (typeof window !== "undefined") {
+        try {
+          const event = new CustomEvent("app:toast", { detail: { message: err.message || "Something went wrong", kind: "error" } })
+          window.dispatchEvent(event)
+        } catch {}
+      }
+    }
   }
 
   return (

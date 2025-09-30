@@ -16,6 +16,7 @@ import { LogOut, Shield } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/lib/user-context"
+import Link from "next/link"
 
 export function Header() {
   const { role, setRole, isAdmin } = useUser()
@@ -42,7 +43,7 @@ const user = session.user
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-colors duration-300">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary transition-colors duration-300">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -60,7 +61,13 @@ const user = session.user
               <rect width="7" height="5" x="3" y="16" rx="1" />
             </svg>
           </div>
-          <span className="text-lg font-semibold text-foreground transition-colors duration-300">Dashboard</span>
+          <Link href="/" className="text-lg font-semibold text-foreground transition-colors duration-300 hover:opacity-80">
+            Dashboard
+          </Link>
+          <div className="h-5 w-px bg-border ml-1 mr-1" />
+          <Link href="/rules">
+            <Button variant="ghost" className="h-8 px-3">Rules</Button>
+          </Link>
         </div>
 
         <div className="flex items-center gap-4">
@@ -84,14 +91,14 @@ const user = session.user
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel>Hesap Ayarları</DropdownMenuLabel>
+              <DropdownMenuLabel>Account Settings</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="px-2 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-muted-foreground" />
                     <Label htmlFor="role-switch" className="text-sm font-medium cursor-pointer">
-                      Admin Modu
+                      Admin Mode
                     </Label>
                   </div>
                   <Switch
@@ -101,7 +108,7 @@ const user = session.user
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-2 ml-6">
-                  {isAdmin ? "Admin olarak giriş yaptınız" : "Kullanıcı olarak giriş yaptınız"}
+                  {isAdmin ? "You are signed in as admin" : "You are signed in as user"}
                 </p>
               </div>
             </DropdownMenuContent>
@@ -118,7 +125,7 @@ const user = session.user
             size="icon"
             onClick={handleLogout}
             className="h-9 w-9 transition-all duration-300 hover:bg-destructive/10 hover:text-destructive"
-            title="Çıkış Yap"
+            title="Sign Out"
           >
             <LogOut className="h-4 w-4" />
           </Button>

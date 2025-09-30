@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
@@ -15,141 +15,53 @@ type TicketType = {
   title: string
   description: string
   status: "open" | "closed" | "pending"
-  priority: "low" | "medium" | "high"
+  risk: "low" | "mid" | "high"
   assignedTo: string
   createdAt: string
   price: number
   createdBy: string
 }
 
-export const mockTickets: TicketType[] = [
-  {
-    id: "TKT-001",
-    title: "Login page not loading",
-    description: "Users cannot access the login page",
-    status: "open",
-    priority: "high",
-    assignedTo: "Ahmet Yılmaz",
-    createdAt: "2024-03-15",
-    price: 1500,
-    createdBy: "Ahmet Yılmaz",
-  },
-  {
-    id: "TKT-002",
-    title: "Profile picture not updating",
-    description: "Profile picture upload feature not working",
-    status: "pending",
-    priority: "medium",
-    assignedTo: "Ayşe Demir",
-    createdAt: "2024-03-14",
-    price: 800,
-    createdBy: "Ayşe Demir",
-  },
-  {
-    id: "TKT-003",
-    title: "Email notifications not received",
-    description: "System not sending email notifications",
-    status: "open",
-    priority: "high",
-    assignedTo: "Mehmet Kaya",
-    createdAt: "2024-03-13",
-    price: 2000,
-    createdBy: "Mehmet Kaya",
-  },
-  {
-    id: "TKT-004",
-    title: "Search feature slow",
-    description: "Search results loading too slowly",
-    status: "closed",
-    priority: "low",
-    assignedTo: "Fatma Şahin",
-    createdAt: "2024-03-12",
-    price: 500,
-    createdBy: "Fatma Şahin",
-  },
-  {
-    id: "TKT-005",
-    title: "Mobile view broken",
-    description: "Page not displaying properly on mobile devices",
-    status: "open",
-    priority: "medium",
-    assignedTo: "Ali Çelik",
-    createdAt: "2024-03-11",
-    price: 1200,
-    createdBy: "Ali Çelik",
-  },
-  {
-    id: "TKT-006",
-    title: "Payment processing failed",
-    description: "Credit card payments cannot be completed",
-    status: "open",
-    priority: "high",
-    assignedTo: "Zeynep Arslan",
-    createdAt: "2024-03-10",
-    price: 3000,
-    createdBy: "Zeynep Arslan",
-  },
-  {
-    id: "TKT-007",
-    title: "Report download error",
-    description: "PDF report download feature not working",
-    status: "pending",
-    priority: "medium",
-    assignedTo: "Can Öztürk",
-    createdAt: "2024-03-09",
-    price: 900,
-    createdBy: "Can Öztürk",
-  },
-  {
-    id: "TKT-008",
-    title: "Password reset link not working",
-    description: "Link in password reset email is invalid",
-    status: "closed",
-    priority: "high",
-    assignedTo: "Elif Yıldız",
-    createdAt: "2024-03-08",
-    price: 1800,
-    createdBy: "Elif Yıldız",
-  },
-  {
-    id: "TKT-009",
-    title: "Dashboard loading slowly",
-    description: "Homepage taking more than 10 seconds to load",
-    status: "open",
-    priority: "medium",
-    assignedTo: "Ahmet Yılmaz",
-    createdAt: "2024-03-07",
-    price: 1100,
-    createdBy: "Ahmet Yılmaz",
-  },
-  {
-    id: "TKT-010",
-    title: "Notification sound too loud",
-    description: "Notification sound cannot be adjusted",
-    status: "pending",
-    priority: "low",
-    assignedTo: "Ayşe Demir",
-    createdAt: "2024-03-06",
-    price: 400,
-    createdBy: "Ahmet Yılmaz",
-  },
-]
 
 export function DataTable() {
   const router = useRouter()
   const { user, role } = useUser()
-  const [priorityFilter, setPriorityFilter] = useState<string>("all")
+  const [tickets, setTickets] = useState<TicketType[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [riskFilter, setRiskFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedRow, setSelectedRow] = useState<string | null>(null)
   const itemsPerPage = 10
 
-  const filteredData = mockTickets.filter((ticket) => {
-    const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter
-    const matchesStatus = statusFilter === "all" || ticket.status === statusFilter
-    const matchesUser = role === "admin" || ticket.createdBy === user?.name
-    return matchesPriority && matchesStatus && matchesUser
-  })
+  useEffect(() => {
+    let cancelled = false
+    async function fetchTickets() {
+      try {
+        setLoading(true)
+        const scope = role === "admin" ? "all" : "mine"
+        const query = new URLSearchParams()
+        query.set("scope", scope)
+        if (statusFilter !== "all") query.set("status", statusFilter)
+        if (riskFilter !== "all") query.set("risk", riskFilter)
+        const res = await fetch(`/api/tickets?${query.toString()}`, { cache: "no-store" })
+        if (!res.ok) throw new Error("Failed to load")
+        const data = await res.json()
+        if (!cancelled) setTickets(data.tickets ?? [])
+      } catch (e) {
+        if (!cancelled) setError("Failed to load tickets")
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    fetchTickets()
+    return () => {
+      cancelled = true
+    }
+  }, [role, statusFilter, riskFilter])
+
+  const filteredData = tickets
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -182,29 +94,15 @@ export function DataTable() {
     }
   }
 
-  const getPriorityColor = (priority: TicketType["priority"]) => {
-    switch (priority) {
+  const getRiskColor = (risk: TicketType["risk"]) => {
+    switch (risk) {
       case "high":
         return "bg-destructive/20 text-destructive border-destructive/30"
-      case "medium":
+      case "mid":
         return "bg-chart-4/20 text-chart-4 border-chart-4/30"
       case "low":
+      default:
         return "bg-chart-2/20 text-chart-2 border-chart-2/30"
-      default:
-        return "bg-muted text-muted-foreground border-border"
-    }
-  }
-
-  const getPriorityText = (priority: TicketType["priority"]) => {
-    switch (priority) {
-      case "high":
-        return "High"
-      case "medium":
-        return "Medium"
-      case "low":
-        return "Low"
-      default:
-        return priority
     }
   }
 
@@ -216,17 +114,17 @@ export function DataTable() {
   return (
     <Card className="border-border bg-card">
       <div className="pt-2 pb-6 px-6">
-        {role === "admin" && (
+        {role === "admin" ? (
           <div className="mb-8 flex items-center justify-end">
             <div className="flex items-center gap-6">
               <span className="text-sm font-semibold text-foreground">Filter by:</span>
 
               <div className="flex items-center gap-2">
-                <label className="text-sm text-muted-foreground">Priority</label>
+                <label className="text-sm text-muted-foreground">Risk</label>
                 <Select
-                  value={priorityFilter}
+                  value={riskFilter}
                   onValueChange={(value) => {
-                    setPriorityFilter(value)
+                    setRiskFilter(value)
                     setCurrentPage(1)
                   }}
                 >
@@ -236,7 +134,7 @@ export function DataTable() {
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
                     <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="mid">Mid</SelectItem>
                     <SelectItem value="low">Low</SelectItem>
                   </SelectContent>
                 </Select>
@@ -264,9 +162,28 @@ export function DataTable() {
               </div>
             </div>
           </div>
+        ) : (
+          <div className="mb-8 flex items-center justify-end">
+            <Link href="/ticket/new">
+              <Button className="bg-green-600 hover:bg-green-700 text-white">
+                <Plus className="h-5 w-5 mr-1" />
+                Create Ticket
+              </Button>
+            </Link>
+          </div>
         )}
 
-        {filteredData.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4">
+            <h3 className="text-xl font-semibold text-foreground mb-2">Loading...</h3>
+            <p className="text-sm text-muted-foreground">Fetching tickets</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4">
+            <h3 className="text-xl font-semibold text-destructive mb-2">Error</h3>
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+        ) : filteredData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4">
             <div className="rounded-full bg-muted p-6 mb-6">
               <Ticket className="h-10 w-10 text-muted-foreground" />
@@ -289,13 +206,13 @@ export function DataTable() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground w-48">
                       Ticket ID
                     </th>
                     <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Title
                     </th>
-                    <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground w-40">
                       User
                     </th>
                     <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -305,7 +222,7 @@ export function DataTable() {
                       Date
                     </th>
                     <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Risk Score
+                      Risk
                     </th>
                     <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Status
@@ -321,14 +238,14 @@ export function DataTable() {
                         selectedRow === ticket.id ? "bg-accent" : ""
                       }`}
                     >
-                      <td className="py-4 text-sm font-medium text-foreground font-mono">{ticket.id}</td>
+                      <td className="py-4 pr-24 text-sm font-medium text-foreground font-mono w-48 whitespace-nowrap">{ticket.id}</td>
                       <td className="py-4 text-sm font-medium text-foreground max-w-xs truncate">{ticket.title}</td>
-                      <td className="py-4 text-sm text-muted-foreground">{ticket.assignedTo}</td>
+                      <td className="py-4 pr-8 text-sm text-muted-foreground w-40 whitespace-nowrap">{ticket.assignedTo}</td>
                       <td className="py-4 text-sm font-medium text-foreground">₺{ticket.price.toLocaleString()}</td>
                       <td className="py-4 text-sm text-muted-foreground font-mono">{ticket.createdAt}</td>
                       <td className="py-4">
-                        <Badge variant="outline" className={`${getPriorityColor(ticket.priority)}`}>
-                          {getPriorityText(ticket.priority)}
+                        <Badge variant="outline" className={`${getRiskColor(ticket.risk)}`}>
+                          {ticket.risk === "mid" ? "Mid" : ticket.risk.charAt(0).toUpperCase() + ticket.risk.slice(1)}
                         </Badge>
                       </td>
                       <td className="py-4">

@@ -8,8 +8,8 @@ export default function DashboardPage() {
 
       <div className="mx-auto max-w-7xl p-6 lg:p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Ticketlar</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Destek ticketlarını görüntüleyin ve yönetin</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Tickets</h1>
+          <p className="mt-2 text-sm text-muted-foreground">View and manage support tickets</p>
         </div>
 
         <DataTable />
