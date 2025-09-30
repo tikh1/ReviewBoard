@@ -21,7 +21,6 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user }) {
       if (!user.email) return false;
 
-      // Kullanıcıyı database'e kaydet veya güncelle
       await prisma.user.upsert({
         where: { email: user.email },
         update: {
@@ -38,7 +37,6 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, account, profile }) {
-      // İlk login'de token.email var, DB'den id'yi çek
       if (account && token.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
