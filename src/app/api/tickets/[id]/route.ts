@@ -32,16 +32,10 @@ export async function GET(
       }
     }
 
-    const riskOf = (amount: number | null | undefined, tags: string[] | null | undefined): "low" | "mid" | "high" => {
-      let score = 0
-      const fee = typeof amount === "number" ? amount : 0
-      if (fee >= 1000 && fee < 3000) score += 10
-      else if (fee >= 3000 && fee < 5000) score += 25
-      else if (fee >= 5000) score += 50
-      const tagList = Array.isArray(tags) ? tags.map((t) => t.toLowerCase()) : []
-      if (tagList.includes("bug report") || tagList.includes("billing")) score += 20
-      if (score < 25) return "low"
-      if (score < 50) return "mid"
+    const riskCategoryOf = (score: number | null | undefined): "low" | "mid" | "high" => {
+      const s = typeof score === "number" ? score : 0
+      if (s < 25) return "low"
+      if (s < 50) return "mid"
       return "high"
     }
 
@@ -50,7 +44,7 @@ export async function GET(
       title: item.title,
       description: item.description,
       status: mapStatus(String(item.status)),
-      risk: riskOf(item.amount ?? null, item.tags ?? []),
+      risk: riskCategoryOf(item.riskScore ?? 0),
       tags: item.tags ?? [],
       assignedTo: item.user?.name ?? "-",
       createdAt: item.createdAt.toISOString().slice(0, 10),

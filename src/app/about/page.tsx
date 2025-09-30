@@ -204,6 +204,16 @@ function EnglishBody() {
       <section>
         <h2 className="text-xl font-semibold text-foreground mb-2">Contact</h2>
         <p className="text-sm text-muted-foreground">Feel free to reach out if you have any questions or feedback about this project.</p>
+        <div className="mt-3">
+          <a
+            href="https://github.com/tikh1"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-sm text-foreground underline"
+          >
+            GitHub: github.com/tikh1
+          </a>
+        </div>
         <div className="mt-4 text-xs text-muted-foreground italic">
           This project is a case study developed to showcase modern full-stack web development capabilities.
         </div>
@@ -355,6 +365,16 @@ function TurkishBody() {
       <section>
         <h2 className="text-xl font-semibold text-foreground mb-2">İletişim</h2>
         <p className="text-sm text-muted-foreground">Bu proje hakkında sorularınız veya geri bildirimleriniz için benimle iletişime geçebilirsiniz.</p>
+        <div className="mt-3">
+          <a
+            href="https://github.com/tikh1"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-sm text-foreground underline"
+          >
+            GitHub: github.com/tikh1
+          </a>
+        </div>
         <div className="mt-4 text-xs text-muted-foreground italic">
           Bu proje, modern full-stack web development yeteneklerini sergilemek için geliştirilmiş bir case study'dir.
         </div>
@@ -362,5 +382,3 @@ function TurkishBody() {
     </div>
   )
 }
-
-
