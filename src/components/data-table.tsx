@@ -25,7 +25,7 @@ type TicketType = {
 
 export function DataTable() {
   const router = useRouter()
-  const { user, role } = useUser()
+  const { role } = useUser()
   const [tickets, setTickets] = useState<TicketType[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -49,7 +49,7 @@ export function DataTable() {
         if (!res.ok) throw new Error("Failed to load")
         const data = await res.json()
         if (!cancelled) setTickets(data.tickets ?? [])
-      } catch (e) {
+      } catch {
         if (!cancelled) setError("Failed to load tickets")
       } finally {
         if (!cancelled) setLoading(false)
@@ -155,12 +155,14 @@ export function DataTable() {
           </div>
         ) : (
           <div className="mb-8 flex items-center justify-end">
-            <Link href="/ticket/new">
-              <Button className="bg-green-600 hover:bg-green-700 text-white">
-                <Plus className="h-5 w-5 mr-1" />
-                Create Ticket
-              </Button>
-            </Link>
+            {filteredData.length > 0 && (
+              <Link href="/ticket/new">
+                <Button className="bg-green-600 hover:bg-green-700 text-white">
+                  <Plus className="h-5 w-5 mr-1" />
+                  Create Ticket
+                </Button>
+              </Link>
+            )}
           </div>
         )}
 
@@ -181,7 +183,7 @@ export function DataTable() {
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">No Tickets Yet</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md mb-8 leading-relaxed">
-              You haven't created any support tickets yet. Create your first ticket to get started with our support
+              You haven&apos;t created any support tickets yet. Create your first ticket to get started with our support
               system.
             </p>
             <Link href="/ticket/new">

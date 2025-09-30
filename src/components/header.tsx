@@ -14,14 +14,13 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { LogOut, Shield } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
 import { useUser } from "@/lib/user-context"
 import Link from "next/link"
 
 export function Header() {
-  const { role, setRole, isAdmin } = useUser()
+  const { setRole, isAdmin } = useUser()
   const { data: session } = useSession()
-  const router = useRouter()
 
   // test user
   // const user = {

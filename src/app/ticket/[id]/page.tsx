@@ -18,7 +18,20 @@ export default function TicketDetailPage() {
   const ticketId = params.id as string
   const { isAdmin } = useUser()
 
-  const [ticketData, setTicketData] = useState<any | null>(null)
+  type TicketData = {
+    id: string
+    title: string
+    description: string
+    status: "New" | "In-Review" | "Rejected" | "Approved"
+    risk: "low" | "mid" | "high"
+    tags: string[]
+    assignedTo: string
+    createdAt: string
+    price: number
+    rejectionWebhookUrl: string | null
+  } | null
+
+  const [ticketData, setTicketData] = useState<TicketData>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,7 +55,7 @@ export default function TicketDetailPage() {
     }
   }, [ticketId])
 
-  const [editedRiskScore, setEditedRiskScore] = useState<number>(ticketData?.riskScore ?? 0)
+  // risk score removed from UI
   const [editedStatus, setEditedStatus] = useState(ticketData?.status || "open")
   const [rejectionWebhookUrl, setRejectionWebhookUrl] = useState<string | null>(ticketData?.rejectionWebhookUrl ?? null)
   const [isWebhookDialogOpen, setIsWebhookDialogOpen] = useState(false)
@@ -53,7 +66,6 @@ export default function TicketDetailPage() {
   // Sync editable fields with backend when ticket loads/changes
   useEffect(() => {
     if (ticketData) {
-      setEditedRiskScore(ticketData.riskScore ?? 0)
       setEditedStatus(ticketData.status || "New")
       setRejectionWebhookUrl(ticketData.rejectionWebhookUrl ?? null)
       setWebhookInput(ticketData.rejectionWebhookUrl ?? "")
@@ -61,7 +73,6 @@ export default function TicketDetailPage() {
   }, [ticketData])
 
   // Track original values to detect changes
-  const originalRiskScore = ticketData?.riskScore ?? 0
   const originalStatus = ticketData?.status || "New"
 
   // Check if there are any changes
@@ -71,7 +82,7 @@ export default function TicketDetailPage() {
   
 
   const handleSaveChanges = async (overrideWebhook?: string | null) => {
-    const payload: any = {}
+    const payload: { status?: string; rejectionWebhookUrl?: string | null } = {}
     // risk is derived; do not send riskScore updates
     if (editedStatus !== originalStatus) payload.status = editedStatus
     const nextWebhook = (typeof overrideWebhook !== "undefined") ? overrideWebhook : (rejectionWebhookUrl ?? null)
@@ -100,10 +111,10 @@ export default function TicketDetailPage() {
         } catch {}
       }
       
-    } catch (err: any) {
+    } catch {
       if (typeof window !== "undefined") {
         try {
-          const event = new CustomEvent("app:toast", { detail: { message: err.message || "Something went wrong", kind: "error" } })
+          const event = new CustomEvent("app:toast", { detail: { message: "Something went wrong", kind: "error" } })
           window.dispatchEvent(event)
         } catch {}
       }
@@ -130,7 +141,6 @@ export default function TicketDetailPage() {
       } else {
         try {
           // validate basic URL
-          // eslint-disable-next-line no-new
           new URL(trimmed)
         } catch {
           if (typeof window !== "undefined") {
@@ -342,7 +352,7 @@ export default function TicketDetailPage() {
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground mb-1">Status</p>
                   {isAdmin ? (
-                    <Select value={editedStatus} onValueChange={(value: any) => setEditedStatus(value)}>
+                    <Select value={editedStatus} onValueChange={(value: string) => setEditedStatus(value)}>
                       <SelectTrigger className="w-full mt-1">
                         <SelectValue />
                       </SelectTrigger>
@@ -407,7 +417,7 @@ export default function TicketDetailPage() {
                 id="webhook-url"
                 placeholder="https://example.com/webhooks/rejections"
                 value={webhookInput}
-                onChange={(e: any) => setWebhookInput(e.target.value)}
+                onChange={(e) => setWebhookInput((e.target as HTMLInputElement).value)}
               />
               <p className="text-xs text-muted-foreground">Leave empty to disable the webhook.</p>
               <p className="text-xs text-muted-foreground">A JSON POST will only be sent if the ticket is rejected.</p>

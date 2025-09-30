@@ -8,28 +8,33 @@ import { useUser } from "@/lib/user-context"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
+type AuditRow = {
+  id: string
+  createdAt: string
+  itemId: string
+  itemTitle: string
+  user: string
+  action: string
+  oldValue?: string | null
+  newValue?: string | null
+}
+
 export default function AuditsPage() {
   const { isAdmin, roleLoaded } = useUser()
   const router = useRouter()
-  const [audits, setAudits] = useState<Array<any>>([])
+  const [audits, setAudits] = useState<AuditRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Redirect non-admins once role is loaded
   useEffect(() => {
     if (!roleLoaded) return
     if (!isAdmin) {
       router.push("/")
     }
   }, [isAdmin, roleLoaded, router])
-
-  if (!roleLoaded) {
-    return null
-  }
-
-  if (!isAdmin) {
-    return null
-  }
-
+  
+  // Load audits
   useEffect(() => {
     let cancelled = false
     async function load() {
@@ -37,9 +42,9 @@ export default function AuditsPage() {
         setLoading(true)
         const res = await fetch("/api/audits", { cache: "no-store" })
         if (!res.ok) throw new Error("Failed to load")
-        const data = await res.json()
+        const data: { audits?: AuditRow[] } = await res.json()
         if (!cancelled) setAudits(data.audits ?? [])
-      } catch (e) {
+      } catch {
         if (!cancelled) setError("Failed to load audits")
       } finally {
         if (!cancelled) setLoading(false)
@@ -50,6 +55,14 @@ export default function AuditsPage() {
       cancelled = true
     }
   }, [])
+
+  if (!roleLoaded) {
+    return null
+  }
+
+  if (!isAdmin) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-background">

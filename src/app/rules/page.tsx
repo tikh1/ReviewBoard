@@ -26,7 +26,7 @@ export default function RulesPage() {
             <section>
               <h2 className="text-lg font-semibold mb-2">Tag Adjustments</h2>
               <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground">
-                <li>If tags contain "Bug Report" or "Billing", add 20 points</li>
+                <li>If tags contain &quot;Bug Report&quot; or &quot;Billing&quot;, add 20 points</li>
               </ul>
             </section>
 

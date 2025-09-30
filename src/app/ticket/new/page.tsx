@@ -48,7 +48,6 @@ export default function NewTicketPage() {
       const data = await res.json()
       // toast on success
       if (typeof window !== "undefined") {
-        const { useToast } = await import("@/components/ui/toast")
         try {
           // dynamic hook usage is not allowed outside components, so fallback to event
           const event = new CustomEvent("app:toast", { detail: { message: "Ticket created successfully!", kind: "success" } })
@@ -56,10 +55,11 @@ export default function NewTicketPage() {
         } catch {}
       }
       router.push(`/ticket/${data.id}`)
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (typeof window !== "undefined") {
         try {
-          const event = new CustomEvent("app:toast", { detail: { message: err.message || "Something went wrong", kind: "error" } })
+          const message = err instanceof Error ? err.message : "Something went wrong"
+          const event = new CustomEvent("app:toast", { detail: { message, kind: "error" } })
           window.dispatchEvent(event)
         } catch {}
       }

@@ -20,7 +20,7 @@ const ToastContext = createContext<ToastContextValue | undefined>(undefined)
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([])
-  const timersRef = useRef<Record<string, { dismiss?: any; remove?: any }>>({})
+  const timersRef = useRef<Record<string, { dismiss?: ReturnType<typeof setTimeout>; remove?: ReturnType<typeof setTimeout> }>>({})
   const [animState, setAnimState] = useState<Record<string, "enter" | "shown" | "leaving">>({})
   const [isClient, setIsClient] = useState(false)
 
@@ -76,12 +76,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   // Global event bridge so non-hook contexts can trigger toasts
   useEffect(() => {
-    function onToast(e: any) {
-      const d = e?.detail || {}
-      showToast({ message: String(d.message || ""), kind: d.kind as any, title: d.title, durationMs: d.durationMs })
+    function onToast(e: Event) {
+      const custom = e as CustomEvent
+      const d = (custom?.detail as { message?: string; kind?: ToastKind; title?: string; durationMs?: number }) || {}
+      showToast({ message: String(d.message || ""), kind: d.kind, title: d.title, durationMs: d.durationMs })
     }
-    window.addEventListener("app:toast", onToast as any)
-    return () => window.removeEventListener("app:toast", onToast as any)
+    window.addEventListener("app:toast", onToast)
+    return () => window.removeEventListener("app:toast", onToast)
   }, [showToast])
 
   return (

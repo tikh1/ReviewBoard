@@ -26,13 +26,13 @@ export async function GET(req: Request) {
     const statusWhere = (() => {
       switch (statusParam) {
         case "New":
-          return { in: ["NEW"] as any }
+          return { in: ["NEW"] as const }
         case "In-Review":
-          return { in: ["IN_REVIEW"] as any }
+          return { in: ["IN_REVIEW"] as const }
         case "Rejected":
-          return { in: ["REJECTED"] as any }
+          return { in: ["REJECTED"] as const }
         case "Approved":
-          return { in: ["APPROVED"] as any }
+          return { in: ["APPROVED"] as const }
         default:
           return undefined
       }
@@ -70,7 +70,7 @@ export async function GET(req: Request) {
       .filter((i) => {
         if (!statusWhere) return true
         const s = String(i.status)
-        return (statusWhere.in as string[]).includes(s)
+        return (statusWhere.in as readonly string[]).includes(s)
       })
       .map((i) => ({
       id: i.id,
@@ -84,7 +84,7 @@ export async function GET(req: Request) {
       createdBy: i.createdBy ?? "-",
       }))
 
-    const tickets = riskParam === "all" ? ticketsAll : ticketsAll.filter((t) => t.risk === (riskParam as any))
+    const tickets = riskParam === "all" ? ticketsAll : ticketsAll.filter((t) => t.risk === (riskParam as "low" | "mid" | "high"))
 
     return NextResponse.json({ tickets })
   } catch (error) {
@@ -107,8 +107,8 @@ export async function POST(req: NextRequest) {
       update: {},
       create: {
         id: userId,
-        name: (session as any)?.user?.name ?? null,
-        email: (session as any)?.user?.email ?? null,
+        name: session?.user?.name ?? null,
+        email: session?.user?.email ?? null,
       },
     })
 

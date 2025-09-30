@@ -121,7 +121,7 @@ export default function LoginPage() {
           <a href="#" style={{ color: "#3b82f6", textDecoration: "none" }}>
             Gizlilik Politikası
           </a>
-          'nı kabul etmiş olursunuz.
+          nı kabul etmiş olursunuz.
         </p>
       </div>
     </main>

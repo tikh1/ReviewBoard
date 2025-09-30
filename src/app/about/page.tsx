@@ -229,7 +229,7 @@ function TurkishBody() {
         <h2 className="text-xl font-semibold text-foreground mb-2">Proje Genel Bakış</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           ReviewBoard, modern web teknolojileri kullanılarak geliştirilmiş kapsamlı bir içerik değerlendirme ve yönetim platformudur.
-          Bu proje, full-stack web geliştirme yeteneklerini sergilemek amacıyla bir mülakat case study'si olarak tasarlanmıştır.
+          Bu proje, full-stack web geliştirme yeteneklerini sergilemek amacıyla bir mülakat case study&#39;si olarak tasarlanmıştır.
         </p>
       </section>
 
@@ -248,7 +248,7 @@ function TurkishBody() {
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-2">Backend & Database</h3>
             <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-              <li><span className="font-medium text-foreground">Next.js API Routes</span> – RESTful endpoint'ler</li>
+            <li><span className="font-medium text-foreground">Next.js API Routes</span> – RESTful endpoint&#39;ler</li>
               <li><span className="font-medium text-foreground">Prisma ORM</span> – Tip güvenli veritabanı erişimi</li>
               <li><span className="font-medium text-foreground">PostgreSQL (Neon)</span> – Bulut, ölçeklenebilir</li>
               <li><span className="font-medium text-foreground">NextAuth.js</span> – OAuth 2.0 kimlik doğrulama</li>
@@ -313,13 +313,13 @@ function TurkishBody() {
           <div>
             <h3 className="text-sm font-semibold text-foreground">1. Serverless Ortamda Prisma Optimizasyonu</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Global singleton pattern ile aynı Prisma instance'ı istekler arasında paylaşıldı.
+              Global singleton pattern ile aynı Prisma instance&#39;ı istekler arasında paylaşıldı.
             </p>
           </div>
           <div>
             <h3 className="text-sm font-semibold text-foreground">2. Type-Safe API Responses</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Prisma'nın ürettiği tipler ile uçtan uca tip güvenliği sağlandı.
+              Prisma&#39;nın ürettiği tipler ile uçtan uca tip güvenliği sağlandı.
             </p>
           </div>
           <div>
@@ -376,7 +376,7 @@ function TurkishBody() {
           </a>
         </div>
         <div className="mt-4 text-xs text-muted-foreground italic">
-          Bu proje, modern full-stack web development yeteneklerini sergilemek için geliştirilmiş bir case study'dir.
+          Bu proje, modern full-stack web development yeteneklerini sergilemek için geliştirilmiş bir case study&#39;dir.
         </div>
       </section>
     </div>

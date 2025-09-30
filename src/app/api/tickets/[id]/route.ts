@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import type { Prisma } from "@prisma/client"
 
 export async function GET(
   _req: Request,
@@ -50,7 +51,7 @@ export async function GET(
       createdAt: item.createdAt.toISOString().slice(0, 10),
       price: item.amount ?? 0,
       createdBy: item.user?.name ?? "-",
-      rejectionWebhookUrl: (item as any).rejectionWebhookUrl ?? null,
+      rejectionWebhookUrl: (item as unknown as { rejectionWebhookUrl: string | null } | undefined)?.rejectionWebhookUrl ?? null,
     }
 
     return NextResponse.json({ ticket })
@@ -106,13 +107,13 @@ export async function PATCH(
       }
     }
 
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (body.status) {
       const dbStatus = toDbStatus(body.status)
-      if (dbStatus) updateData.status = dbStatus as any
+      if (dbStatus) updateData.status = dbStatus as string
     }
 
-    const updates: Array<Promise<any>> = []
+    const updates: Array<Promise<unknown>> = []
     let updatedItem = item
     if (Object.keys(updateData).length > 0) {
       updates.push(
@@ -120,7 +121,7 @@ export async function PATCH(
       )
     }
 
-    const audits: Array<Promise<any>> = []
+    const audits: Array<Promise<unknown>> = []
     if (body.status) {
       audits.push(
         prisma.audit.create({
@@ -150,8 +151,11 @@ export async function PATCH(
     // If a webhook URL was provided, persist it
     if (typeof body.rejectionWebhookUrl !== "undefined") {
       const url = body.rejectionWebhookUrl && body.rejectionWebhookUrl.trim().length > 0 ? body.rejectionWebhookUrl.trim() : null
+      const updateInput = ({ rejectionWebhookUrl: url } as unknown) as Prisma.ItemUpdateInput
       updates.push(
-        prisma.item.update({ where: { id }, data: { rejectionWebhookUrl: url } as any }).then((res) => (updatedItem = res))
+        prisma.item
+          .update({ where: { id }, data: updateInput })
+          .then((res) => (updatedItem = res))
       )
     }
 
@@ -161,7 +165,7 @@ export async function PATCH(
     const statusNow = updatedItem.status
     if (statusNow === "REJECTED") {
       // Webhook JSON POST
-      const webhookUrl = (updatedItem as any).rejectionWebhookUrl || process.env.REJECTION_WEBHOOK_URL
+      const webhookUrl = (updatedItem as unknown as { rejectionWebhookUrl?: string | null } | undefined)?.rejectionWebhookUrl || process.env.REJECTION_WEBHOOK_URL
       if (webhookUrl) {
         fetch(webhookUrl, {
           method: "POST",
