@@ -55,7 +55,6 @@ export default function TicketDetailPage() {
     }
   }, [ticketId])
 
-  // risk score removed from UI
   const [editedStatus, setEditedStatus] = useState(ticketData?.status || "open")
   const [rejectionWebhookUrl, setRejectionWebhookUrl] = useState<string | null>(ticketData?.rejectionWebhookUrl ?? null)
   const [isWebhookDialogOpen, setIsWebhookDialogOpen] = useState(false)
@@ -63,7 +62,6 @@ export default function TicketDetailPage() {
   const [savingWebhook, setSavingWebhook] = useState(false)
   
 
-  // Sync editable fields with backend when ticket loads/changes
   useEffect(() => {
     if (ticketData) {
       setEditedStatus(ticketData.status || "New")
@@ -72,10 +70,8 @@ export default function TicketDetailPage() {
     }
   }, [ticketData])
 
-  // Track original values to detect changes
   const originalStatus = ticketData?.status || "New"
 
-  // Check if there are any changes
   const originalWebhook = ticketData?.rejectionWebhookUrl ?? null
   const hasChanges = editedStatus !== originalStatus || (rejectionWebhookUrl ?? null) !== originalWebhook
 
@@ -83,7 +79,6 @@ export default function TicketDetailPage() {
 
   const handleSaveChanges = async (overrideWebhook?: string | null) => {
     const payload: { status?: string; rejectionWebhookUrl?: string | null } = {}
-    // risk is derived; do not send riskScore updates
     if (editedStatus !== originalStatus) payload.status = editedStatus
     const nextWebhook = (typeof overrideWebhook !== "undefined") ? overrideWebhook : (rejectionWebhookUrl ?? null)
     if ((nextWebhook ?? null) !== originalWebhook) payload.rejectionWebhookUrl = nextWebhook ?? null
@@ -140,7 +135,6 @@ export default function TicketDetailPage() {
         setRejectionWebhookUrl(null)
       } else {
         try {
-          // validate basic URL
           new URL(trimmed)
         } catch {
           if (typeof window !== "undefined") {
@@ -169,7 +163,7 @@ export default function TicketDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="mx-auto max-w-4xl p-6 lg:p-8">
+        <div className="mx-auto max-w-4xl p-6 mt-4 sm:mt-6 lg:p-8">
           <Card className="p-12 text-center">
             <p className="text-muted-foreground">Loading...</p>
           </Card>
@@ -182,7 +176,7 @@ export default function TicketDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="mx-auto max-w-4xl p-6 lg:p-8">
+        <div className="mx-auto max-w-4xl p-6 mt-4 sm:mt-6 lg:p-8">
           <Card className="p-12 text-center">
             <p className="text-muted-foreground">Ticket not found</p>
             <Button onClick={() => router.push("/")} className="mt-4">
@@ -253,7 +247,7 @@ export default function TicketDetailPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <div className="mx-auto max-w-4xl p-6 lg:p-8">
+      <div className="mx-auto max-w-4xl p-6 mt-4 sm:mt-6 lg:p-8">
         <Button variant="ghost" onClick={() => router.push("/")} className="mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back

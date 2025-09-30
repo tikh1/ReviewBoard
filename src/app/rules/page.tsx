@@ -6,9 +6,9 @@ export default function RulesPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <div className="mx-auto max-w-4xl p-6 lg:p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Risk Rules</h1>
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 mt-4 sm:mt-6 lg:p-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Risk Rules</h1>
           <p className="mt-2 text-sm text-muted-foreground">How the ticket risk category is determined</p>
         </div>
 

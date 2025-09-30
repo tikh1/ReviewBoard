@@ -46,10 +46,8 @@ export default function NewTicketPage() {
         throw new Error(msg?.error || "Failed to create ticket")
       }
       const data = await res.json()
-      // toast on success
       if (typeof window !== "undefined") {
         try {
-          // dynamic hook usage is not allowed outside components, so fallback to event
           const event = new CustomEvent("app:toast", { detail: { message: "Ticket created successfully!", kind: "success" } })
           window.dispatchEvent(event)
         } catch {}
@@ -70,7 +68,7 @@ export default function NewTicketPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <div className="mx-auto max-w-3xl p-6 lg:p-8">
+      <div className="mx-auto max-w-3xl p-6 mt-4 sm:mt-6 lg:p-8">
         <Button variant="ghost" onClick={() => router.push("/")} className="mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back

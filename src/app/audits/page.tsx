@@ -26,7 +26,6 @@ export default function AuditsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Redirect non-admins once role is loaded
   useEffect(() => {
     if (!roleLoaded) return
     if (!isAdmin) {
@@ -68,9 +67,9 @@ export default function AuditsPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <div className="mx-auto max-w-6xl p-6 lg:p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Audits</h1>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 mt-4 sm:mt-6 lg:p-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Audits</h1>
           <p className="mt-2 text-sm text-muted-foreground">System activity visible to admins</p>
         </div>
 

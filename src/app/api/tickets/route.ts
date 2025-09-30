@@ -15,7 +15,6 @@ export async function GET(req: Request) {
     const session = await getServerSession(authOptions)
     const userId = session?.user?.id
 
-    // If scope=all, return all items; otherwise default to only the current user's items.
     const whereClause = scope === "all"
       ? {}
       : userId
@@ -101,7 +100,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Ensure the user exists to satisfy the foreign key on Item.createdBy
     await prisma.user.upsert({
       where: { id: userId },
       update: {},

@@ -86,7 +86,6 @@ export async function PATCH(
 
     const toDbStatus = (s: string | undefined) => {
       switch (s) {
-        // New labels
         case "New":
           return "NEW"
         case "In-Review":
@@ -95,7 +94,7 @@ export async function PATCH(
           return "REJECTED"
         case "Approved":
           return "APPROVED"
-        // Backward compatible legacy values
+        // eski aliaslar
         case "open":
           return "NEW"
         case "pending":
@@ -148,7 +147,7 @@ export async function PATCH(
       )
     }
 
-    // If a webhook URL was provided, persist it
+    // webhook url varsa onu kullan
     if (typeof body.rejectionWebhookUrl !== "undefined") {
       const url = body.rejectionWebhookUrl && body.rejectionWebhookUrl.trim().length > 0 ? body.rejectionWebhookUrl.trim() : null
       const updateInput = ({ rejectionWebhookUrl: url } as unknown) as Prisma.ItemUpdateInput
@@ -161,7 +160,7 @@ export async function PATCH(
 
     await Promise.all([...updates, ...audits])
 
-    // After update: if status is now REJECTED, send webhook
+    // rejectedsa yolla
     const statusNow = updatedItem.status
     if (statusNow === "REJECTED") {
       // Webhook JSON POST

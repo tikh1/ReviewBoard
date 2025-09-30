@@ -10,7 +10,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <div className="mx-auto max-w-4xl p-6 lg:p-8">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 mt-4 sm:mt-6 lg:p-8">
         <Card className="p-6 border-border">
           <AboutContent />
         </Card>
